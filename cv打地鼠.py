@@ -245,7 +245,7 @@ class Game:
         return 0  # 未检测到手势
 
 
-    def draw_firewprks(self, photo, w, h):
+    def draw_fireworks(self, photo, w, h):
         '''
         # 绘画粒子效果的烟花
         :param photo:
@@ -318,7 +318,7 @@ class Game:
                     self.gou_active=False
 
                 if self.fireworks_active and time.time()-self.feedback_time<3:
-                    self.draw_firewprks(photo,w,h)
+                    self.draw_fireworks(photo, w, h)
                 else:
                     self.fireworks_active=False
                 # self.draw_firewprks(photo,0,0,w//2,h//2)
@@ -363,12 +363,6 @@ class Game:
 
                 if cv.waitKey(1) == ord('q'):
                     break
-
-
-
-
-
-
 
 if __name__ =="__main__":
     game = Game()
