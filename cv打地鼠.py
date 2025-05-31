@@ -21,11 +21,24 @@ class Game:
         self.mouse_region=1
         self.start_time=time.time()
         self.current_time=self.start_time
-        self.duration_time=60
+        self.duration_time=30
 
         self.mouse_time=self.current_time
         self.has_mouse=False
         self.mouse_duration=4
+
+        self.feedback_time=self.mouse_time
+        self.score_active=True
+
+        self.fireworks_active=False
+        self.firework_time=self.current_time
+        self.firework_region=self.mouse_region
+        self.gou_active=False
+        self.cha_active=False
+        self.gou_region=self.mouse_region
+        self.cha_time=self.mouse_time
+
+
 
     def open_video_check(self):
         # 检测摄像头是否打开
@@ -53,11 +66,13 @@ class Game:
         h=h//2
         region=[
             (0,0),
-            (0,h),
             (w,0),
+            (0,h),
             (w,h)
         ]
         if not self.has_mouse:
+            if time.time() - self.mouse_time<0.4:
+                pass
             choose=random.randint(1,4)
             while choose==self.mouse_region:
                 choose=random.randint(1,4)
@@ -68,8 +83,8 @@ class Game:
                 self.mouse_duration=random.randint(3,5)
         x,y=region[self.mouse_region-1]
         self.draw_mouse(photo,x,y,w,h)
-        if self.current_time-self.mouse_time>self.mouse_duration:
-            self.has_mouse=False
+        if time.time() - self.mouse_time > self.mouse_duration:
+            self.has_mouse = False
 
 
     def draw_score_time(self,photo,w,h):
@@ -83,7 +98,7 @@ class Game:
         cv.putText(photo, f"Remaining {int(self.duration_time-self.current_time+self.start_time)}", (10, h-30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         cv.putText(photo, f"score {self.score}", (10+w//2, h-30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-    def draw_X(self,photo,x,y,w,h):
+    def draw_X(self,photo,w,h):
         """
         # 绘制大叉叉
         :param photo:
@@ -93,8 +108,16 @@ class Game:
         :param h:
         :return:
         """
-        w=w//2
-        h=h//2
+        w = w // 2
+        h = h // 2
+        region = [
+            (0, 0),
+            (w, 0),
+            (0, h),
+            (w, h)
+        ]
+        x, y = region[self.gou_region - 1]
+
         # 计算对角线的端点坐标
         pt1 = (x + 20, y + 20)
         pt2 = (x + w - 20, y + h - 20)
@@ -105,7 +128,7 @@ class Game:
         cv.line(photo, pt1, pt2, (0, 0, 255), 3)  # 红色线条
         cv.line(photo, pt3, pt4, (0, 0, 255), 3)  # 红色线条
 
-    def draw_gou(self,photo,x,y,w,h):
+    def draw_gou(self,photo,w,h):
         '''
         # 绘制大勾勾
         :param photo:
@@ -115,8 +138,17 @@ class Game:
         :param h:
         :return:
         '''
-        w1=w//2
-        h1=h//2
+        w=w//2
+        h=h//2
+        region = [
+            (0, 0),
+            (w, 0),
+            (0, h),
+            (w, h)
+        ]
+        x,y=region[self.firework_region-1]
+        w1=w
+        h1=h
         pt1=(x+30,y+h1-40)
         pt2=(x+w1//2,y+h1-10)
         pt3=(x+w1-30,y+30)
@@ -212,7 +244,8 @@ class Game:
                     return 0  # 在边界或无法确定
         return 0  # 未检测到手势
 
-    def draw_firewprks(self, photo, x1, y1, w, h):
+
+    def draw_firewprks(self, photo, w, h):
         '''
         # 绘画粒子效果的烟花
         :param photo:
@@ -222,6 +255,15 @@ class Game:
         :param h: 区域高度
         :return:
         '''
+        w = w // 2
+        h = h // 2
+        region = [
+            (0, 0),
+            (w, 0),
+            (0, h),
+            (w, h)
+        ]
+        x1,y1=region[self.firework_region-1]
         for _ in range(50):  # 粒子数量
             x = np.random.randint(x1, x1 + w)
             y = np.random.randint(y1, y1 + h)
@@ -262,15 +304,66 @@ class Game:
                 self.create_mouse(w,h,photo)
                 region = (0, 0, w, h)
                 region_id=self.check_fists(photo, region,hands)
-                self.draw_gou(photo,0,0,w,h)
-                self.draw_X(photo,0,0,w,h)
-                self.draw_firewprks(photo,0,0,w//2,h//2)
+                # self.draw_gou(photo,0,0,w,h)
+                # self.draw_X(photo,0,0,w,h)
+
+                if self.cha_active and time.time()-self.cha_time<1:
+                    self.draw_X(photo,w, h)
+                else:
+                    self.cha_active=False
+
+                if self.gou_active and self.gou_region!=self.mouse_region and time.time()-self.firework_time<1:
+                    self.draw_gou(photo, w, h)
+                else:
+                    self.gou_active=False
+
+                if self.fireworks_active and time.time()-self.feedback_time<3:
+                    self.draw_firewprks(photo,w,h)
+                else:
+                    self.fireworks_active=False
+                # self.draw_firewprks(photo,0,0,w//2,h//2)
+                if int(time.time() - self.start_time) > self.duration_time:
+                    cv.putText(photo, f"The end!", (w//2-240, h//2), cv.FONT_HERSHEY_SIMPLEX, 3, (255, 0, 0), 3)
+                    cv.imshow("photo", photo)
+                    if cv.waitKey(0) == ord('q'):
+                        break
                 cv.imshow("photo",photo)
-                if region_id != 0:
+
+                # 将 score_active 改为基于 feedback_time 判断
+                if region_id != 0 :
                     print(f"在区域 {region_id} 检测到拳头")
+
+                    if region_id == self.mouse_region:
+                        if time.time() - self.feedback_time > 0.6:
+                            self.firework_region = region_id
+                            self.feedback_time = time.time()
+                            self.has_mouse = False
+                            self.score += 1  # 命中加分
+                            self.score_active=False
+                            self.fireworks_active=True
+                            self.firework_time=time.time()
+                            self.gou_active=True
+                            # self.cha_active=False
+                            # self.cha_active=False
+                    else:
+                        if self.score_active:
+                            self.cha_time=time.time()
+                            self.gou_region = region_id
+                            self.score_active=False
+                            self.cha_active=True
+                            # self.gou_active=False
+
+                            self.feedback_time = time.time()
+                            self.score -= 1  # 错误扣分
+
+                if time.time()-self.feedback_time>0.6:
+                    self.score_active=True
+
+
 
                 if cv.waitKey(1) == ord('q'):
                     break
+
 
 
 
