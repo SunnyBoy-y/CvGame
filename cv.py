@@ -1,13 +1,10 @@
 import os
-from venv import create
-
 os.environ['GLOG_minloglevel'] = '3'
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
 import random
 import time
-
 
 
 
@@ -365,5 +362,11 @@ class Game:
                     break
 
 if __name__ =="__main__":
-    game = Game()
-    game.run()
+    try:
+        game = Game()
+        game.run()
+    except Exception as e:
+        print(f"[ERROR] 程序异常: {e}")
+        input("按任意键退出...")
+
+

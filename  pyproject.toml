@@ -1,0 +1,26 @@
+[tool.briefcase]
+project = "Hand Detection Game"
+version = "1.0"
+bundle = "com.yourname"
+description = "A hand detection game using OpenCV and Mediapipe"
+author = "YourName"
+url = "https://example.com"
+
+[tool.briefcase.app.HandDetectionGame]
+formal_name = "Hand Detection Game"
+class_name = "HandDetectionGameApp"
+module_name = "cv"
+sources = ["."]
+requires = [
+    "opencv-python",
+    "mediapipe",
+    "numpy",
+    "random",
+    "time"
+]
+hidden_imports = [
+    "mediapipe.util.drawing_utils",
+    "google.protobuf.descriptor"
+]
+console_app = false
+document_types = {}
